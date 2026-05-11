@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Neural Network — Skin ML{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1>🧠 Neural Network Classifier</h1>
+    <p>Multi-Layer Perceptron with ReLU activations. See how your features fire through the network in real time.</p>
+</div>
+
+<div class="grid-sidebar">
+    <!-- ── Input Form ── -->
+    <div class="animate-in" style="animation-delay: 0.1s">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">⚙️ Network Config</div>
+            </div>
+
+            <div class="form-group">
+                <label>Hidden Layer 1 — neurons</label>
+                <input type="number" id="ann-h1" class="form-control" value="100" min="8" max="256">
+            </div>
+            <div class="form-group">
+                <label>Hidden Layer 2 — neurons</label>
+                <input type="number" id="ann-h2" class="form-control" value="50" min="4" max="128">
+            </div>
+            <div class="form-group">
+                <label>Learning Rate</label>
+                <select id="ann-lr" class="form-control">
+                    <option value="0.01">0.01 (fast)</option>
+                    <option value="0.001" selected>0.001 (default)</option>
+                    <option value="0.0001">0.0001 (careful)</option>
+                </select>
+            </div>
+
+            <div class="card-header" style="margin-top:8px;">
+                <div class="card-title">👤 Patient Features</div>
+            </div>
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="inp-age" class="form-control" value="30">
+            </div>
+            <div class="form-group">
+                <label>Gender</label>
+                <select id="inp-gender" class="form-control">
+                    <option value="Female" selected>Female</option>
+                    <option value="Male">Male</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Hydration</label>
+                <select id="inp-hydration" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Oil Level</label>
+                <select id="inp-oil" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sensitivity</label>
+                <select id="inp-sensitivity" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low" selected>Low</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ambient Humidity (%)</label>
+                <input type="range" id="inp-humidity" class="form-control" min="0" max="100" value="50"
+                       oninput="this.nextElementSibling.value = this.value">
+                <output style="font-size:12px;color:var(--accent-primary);">50</output>
+            </div>
+            <div class="form-group">
+                <label>Temperature (°C)</label>
+                <input type="range" id="inp-temperature" class="form-control" min="0" max="50" value="25"
+                       oninput="this.nextElementSibling.value = this.value">
+                <output style="font-size:12px;color:var(--accent-primary);">25</output>
+            </div>
+
+            <button class="btn btn-primary" onclick="predictANN()" style="width:100%;margin-top:10px;">
+                <span>⚡ Run Network</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Results ── -->
+    <div class="animate-in" style="animation-delay:0.2s; position:relative;">
+        <div class="spinner-overlay" id="ann-spinner"><div class="spinner"></div></div>
+
+        <!-- Placeholder -->
+        <div id="ann-placeholder" class="card"
+             style="min-height:300px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text-muted);">
+            <div>
+                <div style="font-size:56px;margin-bottom:20px;">🧠</div>
+                <h3 style="color:white;margin-bottom:12px;">Awaiting Input</h3>
+                <p>Configure the network and click "Run Network" to see the activation flow.</p>
+            </div>
+        </div>
+
+        <!-- Results (hidden until prediction) -->
+        <div id="ann-results" style="display:none;">
+
+            <!-- Prediction badge + meta row -->
+            <div style="display:flex;gap:20px;align-items:stretch;">
+
+                <!-- Badge 1/3 -->
+                <div class="skin-type-badge"
+                     style="flex:1;min-width:0;background:linear-gradient(135deg,#c084fc,var(--accent-primary));
+                            display:flex;flex-direction:column;justify-content:center;
+                            margin-bottom:0;border-radius:20px;padding:24px 16px;">
+                    <p style="font-size:12px;opacity:.85;margin-bottom:6px;">Predicted Skin Type</p>
+                    <h2 id="ann-pred" style="font-size:26px;font-weight:800;margin-bottom:6px;">—</h2>
+                    <p id="ann-meta" style="font-size:11px;opacity:.8;">—</p>
+                </div>
+
+                <!-- Probability bars 2/3 -->
+                <div class="card" style="flex:2;min-width:0;margin:0;">
+                    <div class="card-header" style="margin-bottom:12px;">
+                        <div class="card-title">📊 Class Probabilities</div>
+                    </div>
+                    <div id="ann-proba"></div>
+                </div>
+            </div>
+
+            <!-- Activation network plot -->
+            <div class="card" style="margin-top:24px;">
+                <div class="card-header">
+                    <div class="card-title">⚡ Activation Flow — Which Neurons Fired?</div>
+                    <span style="font-size:12px;color:var(--text-muted);">line thickness & colour = weight × input strength</span>
+                </div>
+                <div class="plot-container" style="border-radius:12px;overflow:hidden;margin-top:0;">
+                    <img id="ann-plot-network" src="" alt="Network activation" style="width:100%;display:block;">
+                </div>
+            </div>
+
+            <!-- Feature importance plot -->
+            <div class="card" style="margin-top:24px;">
+                <div class="card-header">
+                    <div class="card-title">🔬 Feature Importance via First-Layer Weights</div>
+                    <span style="font-size:12px;color:var(--text-muted);">sum of |W₁| per input feature</span>
+                </div>
+                <div class="plot-container" style="border-radius:12px;overflow:hidden;margin-top:0;">
+                    <img id="ann-plot-importance" src="" alt="Feature importance" style="width:100%;display:block;">
+                </div>
+            </div>
+
+        </div><!-- /ann-results -->
+    </div>
+</div>
+{% endblock %}

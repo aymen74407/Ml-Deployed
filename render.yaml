@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: skin-ml-app
+    runtime: python
+    buildCommand: pip install -r skin-ml-app/requirements.txt
+    startCommand: gunicorn --chdir skin-ml-app app:app --workers 1 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

@@ -1,0 +1,11 @@
+{
+  "classes": [
+    "combination",
+    "dry",
+    "normal",
+    "oily"
+  ],
+  "img_size": 128,
+  "val_acc": 0.9039,
+  "trained_on_samples": 14839
+}

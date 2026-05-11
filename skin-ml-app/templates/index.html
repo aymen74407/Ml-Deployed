@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Skin ML Benchmark{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1>Benchmark Overview</h1>
+    <p>Exploring 10,000 skin profiles using advanced machine learning algorithms.</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card animate-in" style="animation-delay: 0.1s">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value">{{ stats.total_rows }}</div>
+        <div class="stat-label">Total Samples</div>
+    </div>
+    <div class="stat-card animate-in" style="animation-delay: 0.2s">
+        <div class="stat-icon">🧬</div>
+        <div class="stat-value">{{ stats.total_features }}</div>
+        <div class="stat-label">Features</div>
+    </div>
+    <div class="stat-card animate-in" style="animation-delay: 0.3s">
+        <div class="stat-icon">🎂</div>
+        <div class="stat-value">{{ stats.avg_age }}</div>
+        <div class="stat-label">Avg User Age</div>
+    </div>
+    <div class="stat-card animate-in" style="animation-delay: 0.4s">
+        <div class="stat-icon">✨</div>
+        <div class="stat-value">{{ stats.avg_skin_score }}</div>
+        <div class="stat-label">Avg Skin Score</div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="card animate-in" style="animation-delay: 0.5s">
+        <div class="card-header">
+            <div class="card-title">🧴 Skin Type Distribution</div>
+        </div>
+        <div style="height: 250px;">
+            <canvas id="chart-skin-type"></canvas>
+        </div>
+    </div>
+    <div class="card animate-in" style="animation-delay: 0.6s">
+        <div class="card-header">
+            <div class="card-title">👥 Gender & Hydration</div>
+        </div>
+        <div style="height: 250px;">
+            <canvas id="chart-gender"></canvas>
+        </div>
+    </div>
+</div>
+
+<h2 class="nav-label" style="margin-top: 40px; margin-bottom: 20px;">Explore ML Modules</h2>
+<div class="modules-grid">
+    <a href="/classification" class="module-card animate-in" style="animation-delay: 0.7s">
+        <div class="mod-icon">🎯</div>
+        <div class="mod-title">Classification</div>
+        <div class="mod-desc">Predict skin type (Oily, Dry, Normal, Combination) using supervised learning.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">KNN</span>
+            <span class="algo-tag">Decision Tree</span>
+            <span class="algo-tag">Random Forest</span>
+            <span class="algo-tag">SVM</span>
+            <span class="algo-tag">XGBoost</span>
+        </div>
+    </a>
+    <a href="/clustering" class="module-card animate-in" style="animation-delay: 0.8s">
+        <div class="mod-icon">🔵</div>
+        <div class="mod-title">Clustering</div>
+        <div class="mod-desc">Discover natural groupings in the data with unsupervised learning.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">K-Means</span>
+            <span class="algo-tag">DBSCAN</span>
+        </div>
+    </a>
+    <a href="/regression" class="module-card animate-in" style="animation-delay: 0.9s">
+        <div class="mod-icon">📈</div>
+        <div class="mod-title">Regression</div>
+        <div class="mod-desc">Predict continuous values like skin score and skin age from features.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">KNN</span>
+            <span class="algo-tag">Decision Tree</span>
+            <span class="algo-tag">Random Forest</span>
+            <span class="algo-tag">SVM</span>
+            <span class="algo-tag">XGBoost</span>
+        </div>
+    </a>
+    <a href="/recommendation" class="module-card animate-in" style="animation-delay: 1.0s">
+        <div class="mod-icon">💡</div>
+        <div class="mod-title">Recommendation</div>
+        <div class="mod-desc">Personalized skincare reports and neighborhood-based advice.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">KNN Similarity</span>
+            <span class="algo-tag">Expert Rules</span>
+        </div>
+    </a>
+    <a href="/ann" class="module-card animate-in" style="animation-delay: 1.1s">
+        <div class="mod-icon">🧠</div>
+        <div class="mod-title">Artificial Neural Network</div>
+        <div class="mod-desc">Predict skin type using a fully connected deep learning network.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">TensorFlow</span>
+            <span class="algo-tag">MLP</span>
+        </div>
+    </a>
+    <a href="/cnn" class="module-card animate-in" style="animation-delay: 1.2s">
+        <div class="mod-icon">👁️</div>
+        <div class="mod-title">Convolutional Neural Network</div>
+        <div class="mod-desc">Classify skin type directly from face images using deep computer vision.</div>
+        <div class="algo-tags">
+            <span class="algo-tag">TensorFlow</span>
+            <span class="algo-tag">MobileNetV2</span>
+        </div>
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="chart-data" type="application/json">
+{
+    "skinDist": {{ (stats.skin_type_dist if stats else {}) | tojson }},
+    "genderDist": {{ (stats.gender_dist if stats else {}) | tojson }}
+}
+</script>
+<script>
+const chartColors = {
+    primary: '#6c63ff',
+    secondary: '#00d4aa',
+    accent1: '#ff79c6',
+    accent2: '#ffb86c',
+    blue: '#38bdf8'
+};
+
+// Robust data injection avoiding IDE syntax errors
+const dashboardData = JSON.parse(document.getElementById('chart-data').textContent);
+const skinDist = dashboardData.skinDist;
+const genderDist = dashboardData.genderDist;
+
+// Skin Type Chart
+const skinCtx = document.getElementById('chart-skin-type').getContext('2d');
+if (skinCtx) {
+    new Chart(skinCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(skinDist),
+            datasets: [{
+                data: Object.values(skinDist),
+                backgroundColor: [chartColors.primary, chartColors.secondary, chartColors.accent1, chartColors.accent2],
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'right', labels: { color: '#a0a8c8', padding: 20, font: { size: 12 } } }
+            }
+        }
+    });
+}
+
+// Gender Chart
+const genderCtx = document.getElementById('chart-gender').getContext('2d');
+if (genderCtx) {
+    new Chart(genderCtx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(genderDist),
+            datasets: [{
+                label: 'Samples',
+                data: Object.values(genderDist),
+                backgroundColor: [chartColors.primary, chartColors.secondary],
+                borderRadius: 10,
+                maxBarThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6272a4' } },
+                x: { grid: { display: false }, ticks: { color: '#6272a4' } }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

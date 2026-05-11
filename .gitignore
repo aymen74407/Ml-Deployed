@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# Data (raw image datasets — NOT committed to git)
+skin-type-image-dataset/
+
+# CNN saved model — large binary files, not committed to git.
+# Each developer must run  python skin-ml-app/train_cnn.py  once locally.
+# meta.json IS committed so teammates can see accuracy/class info.
+# skin-ml-app/models/saved_cnn/*.keras (Uncommented to allow push)
+skin-ml-app/models/saved_cnn/*.h5
+skin-ml-app/models/saved_cnn/variables/
+skin-ml-app/models/saved_cnn/assets/
+skin-ml-app/models/saved_cnn/saved_model.pb
+
+# IDEs & tools
+.vscode/
+.idea/
+.claude/
+
+# Debug / scratch files
+scratch_debug.py
+

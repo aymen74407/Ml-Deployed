@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Test Regression — Skin ML{% endblock %}
+{% block content %}
+<div class="page-header animate-in">
+    <h1>📈 Skin Score Predictor</h1>
+    <p>Estimate your skin health score or biological skin age using regression algorithms.</p>
+</div>
+
+<div class="grid-sidebar">
+    <!-- Input Form -->
+    <div class="animate-in" style="animation-delay: 0.1s">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">👤 User Profile</div>
+            </div>
+
+            <div class="form-group">
+                <label>Target to Predict</label>
+                <select id="reg-target" class="form-control">
+                    <option value="skin_score" selected>Skin Health Score (0-100)</option>
+                    <option value="skin_age">Biological Skin Age</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Algorithm</label>
+                <select id="reg-algorithm" class="form-control">
+                    <option value="random_forest" selected>Random Forest</option>
+                    <option value="xgboost">XGBoost</option>
+                    <option value="svm">SVM</option>
+                    <option value="knn">KNN</option>
+                    <option value="decision_tree">Decision Tree</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" id="inp-age" class="form-control" value="30">
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select id="inp-gender" class="form-control">
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Hydration</label>
+                <select id="inp-hydration" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Oil Level</label>
+                <select id="inp-oil" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Sensitivity</label>
+                <select id="inp-sensitivity" class="form-control">
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low" selected>Low</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ambient Humidity (%)</label>
+                <input type="range" id="inp-humidity" class="form-control" min="0" max="100" value="50" oninput="this.nextElementSibling.value = this.value">
+                <output style="font-size: 12px; color: var(--accent-primary);">50</output>
+            </div>
+
+            <div class="form-group">
+                <label>Temperature (°C)</label>
+                <input type="range" id="inp-temperature" class="form-control" min="0" max="50" value="25" oninput="this.nextElementSibling.value = this.value">
+                <output style="font-size: 12px; color: var(--accent-primary);">25</output>
+            </div>
+
+            <button class="btn btn-primary" onclick="predictRegression()" style="width: 100%; margin-top: 10px;">
+                <span>📈 Calculate Result</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Result Display -->
+    <div class="animate-in" style="animation-delay: 0.2s; position: relative;">
+        <div class="spinner-overlay" id="reg-spinner">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="reg-results-container" style="display: none;">
+            <div class="skin-type-badge" style="background: linear-gradient(135deg, var(--accent-secondary), #38bdf8);">
+                <p>Predicted Result</p>
+                <h2 id="reg-pred-value" style="font-size: 64px;">—</h2>
+                <p id="reg-pred-target-label">Skin Score</p>
+            </div>
+
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <div class="card-title">📌 Comparison Note</div>
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary);">
+                    This result is calculated using the <strong id="res-reg-algo">Model</strong> algorithm trained on
+                    10,000 real-world samples.
+                    It represents the most likely value based on your current hydration, oil, and sensitivity levels.
+                </p>
+            </div>
+        </div>
+
+        <div id="reg-placeholder" class="card"
+            style="height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted);">
+            <div>
+                <div style="font-size: 56px; margin-bottom: 20px;">📈</div>
+                <h3 style="color: white; margin-bottom: 12px;">Regression Analysis</h3>
+                <p>Fill out the profile to predict continuous variables like your skin's health score or biological age.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
