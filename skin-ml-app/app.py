@@ -2,6 +2,11 @@ from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import os
 import json
+import logging
+import traceback
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -130,26 +135,34 @@ def api_ann_predict():
 def api_cnn_predict():
     try:
         from models.cnn import predict_cnn
-    except ImportError:
+    except ImportError as e:
+        logger.error("[CNN] ImportError — TensorFlow not available:\n%s", traceback.format_exc())
         return jsonify({
             'error': (
                 'CNN requires TensorFlow, which is not installed in this deployment. '
-                'All tabular ML features (Classification, Clustering, Regression, '
-                'ANN, Recommendation) are fully available.'
+                f'Details: {e}'
             )
         }), 503
+
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file in request (expected field name: "image")'}), 400
+
     try:
-        if 'image' not in request.files:
-            return jsonify({'error': 'No image file uploaded'}), 400
         file_bytes = request.files['image'].read()
+        if len(file_bytes) == 0:
+            return jsonify({'error': 'Uploaded file is empty'}), 400
         params = {
             'h1': request.form.get('h1', 128),
             'h2': request.form.get('h2', 64),
         }
         result = predict_cnn(file_bytes, params)
         return jsonify(result)
-    except Exception as e:
+    except FileNotFoundError as e:
+        logger.error("[CNN] Model file not found: %s", e)
         return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        logger.error("[CNN] Prediction failed:\n%s", traceback.format_exc())
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

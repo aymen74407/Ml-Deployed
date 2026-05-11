@@ -15,7 +15,14 @@ import os
 import io
 import json
 import base64
+import logging
+import traceback
 import numpy as np
+
+# Must be set before any tensorflow import — forces Keras 2 legacy backend on TF 2.15+
+os.environ.setdefault("TF_USE_LEGACY_KERAS", "1")
+
+logger = logging.getLogger(__name__)
 
 import matplotlib
 matplotlib.use("Agg")
@@ -54,23 +61,28 @@ def _get_model():
     if _TF_MODEL is not None:
         return _TF_MODEL
 
+    logger.info("[CNN] Model path (absolute): %s", MODEL_PATH)
+    logger.info("[CNN] Model file exists: %s", os.path.exists(MODEL_PATH))
+
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(
-            f"\n\n"
-            f"  ❌  Trained CNN model not found at:\n"
-            f"      {MODEL_PATH}\n\n"
-            f"  Run the training script ONCE to create it:\n"
-            f"      python skin-ml-app/train_cnn.py\n\n"
-            f"  This only needs to be done one time. Afterwards the app\n"
-            f"  will load the saved model instantly on every restart.\n"
+            f"Trained CNN model not found at: {MODEL_PATH}\n"
+            f"Run: python skin-ml-app/train_cnn.py"
         )
 
-    print("[CNN] Loading TensorFlow model … ", end="", flush=True)
-    os.environ["TF_USE_LEGACY_KERAS"] = "1"
-    import tensorflow as tf
-    _TF_MODEL = tf.keras.models.load_model(MODEL_PATH)
-    val_acc = _META.get("val_acc", "?") if _META else "?"
-    print(f"OK  (val_acc={float(val_acc)*100:.1f}%)")
+    logger.info("[CNN] Loading TensorFlow model ...")
+    print("[CNN] Loading TensorFlow model ...", flush=True)
+    try:
+        import tensorflow as tf
+        logger.info("[CNN] TensorFlow version: %s", tf.__version__)
+        _TF_MODEL = tf.keras.models.load_model(MODEL_PATH, compile=False)
+        val_acc = _META.get("val_acc", "?") if _META else "?"
+        msg = f"[CNN] Model loaded OK (val_acc={float(val_acc)*100:.1f}%)"
+        logger.info(msg)
+        print(msg, flush=True)
+    except Exception:
+        logger.error("[CNN] FAILED to load model:\n%s", traceback.format_exc())
+        raise
     return _TF_MODEL
 
 
